@@ -47,7 +47,19 @@ async function run() {
       const query = { date: date };
       const bookings = await bookingCollection.find(query).toArray();
 
-      res.send(bookings);
+      // Step 3: For each service, find bookings for that day
+      services.forEach((service) => {
+        const serviceBookings = bookings.filter(
+          (book) => book.treatment === service.name
+        );
+        const bookedSlots = serviceBookings.map((booked) => booked.slot);
+        const available = service.slots.filter(
+          (slot) => !bookedSlots.includes(slot)
+        );
+        service.slots = available;
+      });
+
+      res.send(services);
     });
 
     app.post("/booking", async (req, res) => {
